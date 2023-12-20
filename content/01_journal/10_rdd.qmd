@@ -2,6 +2,103 @@
 title: "Regression Discontinuity"
 ---
 
-::: callout-note
-You can delete everything in here and start fresh.
-:::
+
+```{r}
+library(tidyverse)
+library(rddensity)
+
+df<- readRDS("../../assignment_data/coupon.rds")
+
+# Define cut-off
+c0 <- 60
+
+# Density test
+rddd <- rddensity(df$days_since_last, c = c0)
+summary(rddd)
+
+
+# Specify bandwidth
+bw_half <- c0 + c(-5/2, 5/2)
+
+# Subsets below and above threshold in specified bandwidth
+df_bw_below <- df %>% filter(days_since_last >= bw_half[1] & days_since_last < c0)
+df_bw_above <- df %>% filter(days_since_last >= c0 & days_since_last <= bw_half[2])
+
+
+df_bw_half <- bind_rows(df_bw_above, df_bw_below)
+dim(df_bw_half)
+
+# [3.2] Local Average treatment effect (LATE) ----
+# Extract values for vertical lines to visualize local average treatment effect
+model_bw_below <- lm(purchase_after ~ days_since_last, df_bw_below)
+model_bw_above <- lm(purchase_after ~ days_since_last, df_bw_above)
+
+y0 <- predict(model_bw_below, tibble(days_since_last = c0))
+y1 <- predict(model_bw_above, tibble(days_since_last = c0))
+
+late <- y1 - y0
+sprintf("LATE: %.2f", late)
+
+# [4] Estimation ----
+# [4.1] Parametric ----
+# Compute coefficients for specified bandwidth.
+lm_bw_half <- lm(purchase_after ~ days_since_last_centered + coupon, df_bw_half)
+summary(lm_bw_half)
+
+
+# doubled bw
+bw_doubled <- c0 + c(-10, 10)
+
+# Subsets below and above threshold in specified bandwidth
+df_bw_below <- df %>% filter(days_since_last >= bw_doubled[1] & days_since_last < c0)
+df_bw_above <- df %>% filter(days_since_last >= c0 & days_since_last <= bw_doubled[2])
+
+df_bw_doubled <- bind_rows(df_bw_above, df_bw_below)
+dim(df_bw_doubled)
+
+# [3.2] Local Average treatment effect (LATE) ----
+# Extract values for vertical lines to visualize local average treatment effect
+model_bw_below <- lm(purchase_after ~ days_since_last, df_bw_below)
+model_bw_above <- lm(purchase_after ~ days_since_last, df_bw_above)
+
+y0 <- predict(model_bw_below, tibble(days_since_last = c0))
+y1 <- predict(model_bw_above, tibble(days_since_last = c0))
+
+late <- y1 - y0
+sprintf("LATE: %.2f", late)
+
+# [4] Estimation ----
+# [4.1] Parametric ----
+# Compute coefficients for specified bandwidth.
+lm_bw_doubled <- lm(purchase_after ~ days_since_last_centered + coupon, df_bw_doubled)
+summary(lm_bw_doubled)
+```
+By taking half the bandwidth the number of data reduced to 181 and by doubling it, the number nearly doubled as well. The LATE and estimate value has decreased with the decreasing bandwidth and increased with the doubled bandwidth. The p-value of couponTRUE however has increased only for the smaller bandwidth.
+
+
+# . Free Shipping
+```{r}
+free_shipping<- readRDS("../../assignment_data/shipping.rds")
+
+library(ggplot2)
+
+# Create a histogram
+ggplot(free_shipping, aes(x = purchase_amount)) +
+  geom_histogram(binwidth = 4, fill = "skyblue", color = "black", alpha = 0.7) +
+  geom_vline(xintercept = 30, linetype = "dashed", color = "red", linewidth = 0.5) +
+  labs(title = "Distribution of Purchase Amounts",
+       x = "Purchase Amount (€)",
+       y = "Frequency") +
+  theme_minimal()
+
+
+# density check:
+rd_shipping <- rddensity(free_shipping$purchase_amount, c = 30)
+summary(rd_shipping)
+
+# Visually check continuity at running variable
+rd_shipping_plot <- rdplotdensity(rd_shipping, free_shipping$purchase_amount, plotN = 100)
+
+```
+The histogram shows the sudden change in frequency at 30€. To check it more thoroughly, `rddensity` is used. It shows that the p-value is zero. Additionally, the `rdplotdensity` shows that there is no confidence intervals overlap. This means there is some kind of manipulation around the cut-off and RDD cannot be used to obtain valid results.
+

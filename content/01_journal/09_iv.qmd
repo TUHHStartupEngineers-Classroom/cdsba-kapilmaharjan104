@@ -2,6 +2,87 @@
 title: "Instrumental Variables"
 ---
 
-::: callout-note
-You can delete everything in here and start fresh.
-:::
+```{r}
+library(tidyverse)
+library(dagitty)
+library(ggdag)
+library(MatchIt)
+library(dplyr)
+
+rand_enc <- readRDS("../../assignment_data/rand_enc.rds")
+
+```
+
+# . Draw a DAG of how you understand the relationships.
+```{r}
+app_DAG <- dagify(
+  X ~ Z,
+  Y ~ Z,
+  Y ~ X,
+  X ~ IV,
+  coords = list(x = c(IV = 0, Y = 3, Z = 2, X = 1),
+                y = c(IV = 0, Y = 0, Z = 1, X = 0)),
+  labels = list(X = "New Feature",
+                Y = "Time spent", 
+                Z = "Unknown Confounder",
+                IV = "Popup")
+)
+# Plot DAG
+ggdag(app_DAG) +
+  theme_dag_gray() + # custom theme, can be left out
+  geom_dag_point(color = "lightgreen") +
+  geom_dag_text(color = "red") +
+  geom_dag_edges(edge_color = "blue") +
+  geom_dag_label_repel(aes(label = label))
+```
+
+
+# . Compute the naive, biased estimate.
+```{r}
+summary(lm(time_spent ~ used_ftr, data = rand_enc))
+
+```
+
+# . 
+## .the assumptions that can be (partly) tested, check whether they are satisfied by either computing correlations or drawing plots.
+
+```{r}
+
+# Correlation matrix
+cor(rand_enc) %>% round(2)
+
+```
+**Stable unit treatment value assumption:** 
+It is valid as the use of new feature by one user doesn't affect the other. \
+
+**Independence assumption: **
+There is no known confounding variable between Encouragement popup and the use of new feature or between the popup and the time spent.\
+
+**Exclusion restriction:**
+The instrument, encouragement popup does not directly affect the outcome time_spent but only through the treatment, the new feature.\
+
+**Instrument relevance:**
+As seen from the correlation matrix, the instrument "rand_enc" and treatment variable "used_ftr" are correlated. However, the correlation is not so strong, only 0.2 \
+
+**Monotonicity assumption:**
+Instrument and treatment variables are compliers.\
+
+
+## . Argue whether instrumental variable estimation is an adequate procedure.
+The necessary assumptions are fulfilled. The correlation between instrument and treatment variable is however not so high. So, it is important to interpret the results with caution and further exploration and potential refinement of the instrumental variable may be beneficial.
+
+
+
+
+# .
+## . Compute the IV estimate using 2SLS and compare it to the naive estimate.
+```{r}
+library(estimatr)
+model_iv <- iv_robust(time_spent ~ used_ftr | rand_enc, data = rand_enc)
+summary(model_iv)
+```
+
+The estimate has reduced by about 1 unit and the p-value has significantly reduced as well.
+
+##. Would you consider the naive estimate biased, and if yes, does it have an upward or downward bias?
+The difference in estimates suggests that there might be unobserved confounding, and the naive estimate could be biased, potentially with an upward bias like in the given example regarding voluntary training program .

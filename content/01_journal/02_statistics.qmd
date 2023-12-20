@@ -2,6 +2,81 @@
 title: "Statistical Concepts"
 ---
 
-::: callout-note
-You can delete everything in here and start fresh.
-:::
+# 1.
+
+**1. expected value:** \
+The probabilities are not given. So lets assume that the probabilities are equal. So a normal average function from R can be used.
+
+
+```{r}
+# Import data
+random_vars <- readRDS("../../assignment_data/random_vars.rds")
+
+
+# Calculate Expectations, Variances, and Standard Deviations
+expectation_age <- mean(random_vars$age)
+expectation_income <- mean(random_vars$income)
+variance_age <- var(random_vars$age)
+variance_income <- var(random_vars$income)
+sd_age <- sd(random_vars$age)
+sd_income <- sd(random_vars$income)
+
+
+# Print results
+cat(
+  "Expectation Age =", expectation_age, "\n",
+  "Expectation Income =", expectation_income, "\n",
+  "Variance Age =", variance_age, "\n",
+  "Variance Income =", variance_income, "\n",
+  "SD Age =", sd_age, "\n",
+  "SD Income =", sd_income, "\n"
+)
+
+```
+
+
+# 2. 
+**Explain, if it makes sense to compare the standard deviations.** \
+\
+A standard deviation of 18.455 for "age" indicates moderate variability in the ages of the 1,000 individuals. Similarly, a standard deviation of 2,936.945 for "income" suggests significant income variability among the same group.\
+
+The standard deviation can be a useful descriptive statistic to understand the dispersion of data points within each variable. But, it doesn't describe the nature of the relationship between age and income. To understand the relationship, covariance and correlation should be used.
+
+
+# 3.
+```{r}
+# Calculate covariance and correlation
+covariance_result <- cov(random_vars$age, random_vars$income)
+correlation_result <- cor(random_vars$age, random_vars$income)
+
+
+# Print results
+cat("Covariance =", covariance_result, "\nCorrelation =", correlation_result, "\n")
+
+```
+
+
+# 4. 
+**What measure is easier to interpret? Please discuss your interpretation.**\
+\
+Correlation is a more robust approach for assessing the relationship between two sets of data. A positive correlation coefficient indicates that when one variable increases, the other tends to increase, whereas a negative correlation coefficient signifies that as one variable increases, the other typically decreases. Correlation coefficients range between -1 and 1, providing a standardized measure. Unlike covariance, which conveys strength and direction, correlation offers a normalized strength and direction, making it a more accessible and efficient metric for interpretation.
+
+# 5. 
+**Compute the conditional expected value for:**\
+```{r}
+# Calculate the conditional expected values
+expected_value_age18andBelow <- mean(subset(random_vars, age <= 18)$income)
+expected_value_age18_65 <- mean(subset(random_vars, age >= 18 & age < 65)$income)
+expected_value_age65andAbove <- mean(subset(random_vars, age >= 65)$income)
+
+# Print results
+cat(
+  "Expected value E[income|age≤18]:", expected_value_age18andBelow, "\n",
+  "Expected value E[income|age ∈ [18,65)]:", expected_value_age18_65, "\n",
+  "Expected value E[income|age≥65]:", expected_value_age65andAbove, "\n"
+)
+
+```
+
+
+

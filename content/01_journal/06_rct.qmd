@@ -2,6 +2,123 @@
 title: "Randomized Controlled Trials"
 ---
 
-::: callout-note
-You can delete everything in here and start fresh.
-:::
+```{r}
+library(dplyr)
+library(tidyverse)
+abtest_online <- readRDS("../../assignment_data/abtest_online.rds")
+
+```
+
+# 1.
+```{r}
+library(dplyr)
+# Group by treatment group and compute average outcome
+abtest_online %>%
+  group_by(chatbot) %>%
+  summarise(mean_prev_visit = mean(previous_visit))
+
+```
+
+```{r}
+# 
+abtest_online %>%
+  group_by(chatbot) %>%
+  summarise(mean_mobile_device = mean(mobile_device))
+```
+Here, mean previous visit and mean mobile device user is calculated for the control and treatment group separately which are differentiated according to the chatbot. The mean values are not that different which means the covariates are balanced across the groups. It can also be seen in the plot below:
+
+
+```{r}
+df <- as_tibble(abtest_online)
+
+# Plotting boxplots for mobile_device and previous_visit across chatbot groups
+covariate_balance_plot <- ggplot(df, aes(x = chatbot, y = previous_visit, fill = mobile_device)) +
+  geom_boxplot() +
+  labs(title = "Covariate Balance Check",
+       x = "Chatbot",
+       y = "Previous Visit") +
+  theme_minimal()
+
+# Print the plot
+print(covariate_balance_plot)
+
+```
+```{r}
+df <- as_tibble(abtest_online)
+compare_visits <- 
+  ggplot(df, 
+         aes(x = chatbot, 
+             y = previous_visit, 
+             color = as.factor(chatbot))) +
+  stat_summary(geom = "errorbar", 
+               width = .5,
+               fun.data = "mean_se", 
+               fun.args = list(mult=1.96),
+               show.legend = F) +
+  labs(x = "chatbot", y = "previous_visit", title = "Difference in previous_visit")
+
+
+
+compare_devices <- 
+  ggplot(df, 
+         aes(x = chatbot, 
+             y = mobile_device, 
+             color = as.factor(chatbot))) +
+  stat_summary(geom = "errorbar", 
+               width = .5,
+               fun.data = "mean_se", 
+               fun.args = list(mult=1.96),
+               show.legend = F) +
+  labs(x = "chatbot", y = "mobile_device", title = "Difference in mobile_device")
+
+
+compare_purchase <- 
+  ggplot(df, 
+         aes(x = chatbot, 
+             y = purchase_amount, 
+             color = as.factor(chatbot))) +
+  stat_summary(geom = "errorbar", 
+               width = .5,
+               fun.data = "mean_se", 
+               fun.args = list(mult=1.96),
+               show.legend = F) +
+  labs(x = "chatbot", y = "purchase_amount", title = "Difference in purchase_amount")
+
+compare_visits
+compare_devices
+compare_purchase
+
+
+```
+# 2.
+```{r}
+lm_chatbot <- lm(purchase_amount ~ chatbot, data = abtest_online)
+summary(lm_chatbot, digits = 3)
+
+```
+Upon reviewing the linear regression results, it is evident that the 'chatbot' variable has a significantly low p-value, indicating its influence on 'purchase_amount.' The estimate for the treatment group (chatbot = TRUE) is negative, signifying a statistically significant negative impact on 'purchase_amount.' In practical terms, users exposed to the chatbot exhibit a lower purchase amount compared to those not exposed.
+
+# 3.
+```{r}
+lm_chatbot_mobile <- lm(purchase_amount ~ chatbot * mobile_device, data = abtest_online)
+
+summary(lm_chatbot_mobile)
+
+```
+The p-value for chatbotTRUE:mobile_deviceTRUE is comparatively high. So it has less effect on the purchase amount. \
+Using the coefficients, CATE for mobile users is -0.1526 
+
+
+# 4.
+```{r}
+logistic_regg<- glm(purchase ~ chatbot, family = binomial(link = 'logit'), data = abtest_online)
+summary(logistic_regg)
+
+# Extract the coefficient for chatbotTRUE
+odds_ratio <- exp(coef(logistic_regg)["chatbotTRUE"])
+odds_ratio
+
+
+```
+The negative coefficient for the presence of the chatbot implies, on average, a decrease in the odds of making a purchase. Specifically, the odds ratio of approximately 0.37 indicates that when the chatbot is present, the odds of making a purchase are reduced by about 63% compared to when the chatbot is absent. In other words, the chatbot is associated with a substantial decrease in the likelihood of making a purchase
+

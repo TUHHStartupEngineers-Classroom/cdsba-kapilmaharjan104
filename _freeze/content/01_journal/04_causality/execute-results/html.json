@@ -1,0 +1,18 @@
+{
+  "hash": "ef59854373adb07361f09f4366b27d6d",
+  "result": {
+    "markdown": "---\ntitle: \"Causality\"\n---\n\n\n# Example of Spur Correlation\n**Source:**\\\nhttps://tylervigen.com/spurious-correlations\n\n\n\n::: {.cell hash='04_causality_cache/html/unnamed-chunk-1_143b586a05e6cf84ec0662442ce23e84'}\n\n```{.r .cell-code}\n# Provided data\nyears <- c(1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009)\nus_spending <- c(18.079, 18.594, 19.753, 20.734, 20.831, 23.029, 23.597, 23.584, 25.525, 27.731, 29.449)\nsuicides <- c(5427, 5688, 6198, 6462, 6635, 7336, 7248, 7491, 8161, 8578, 9000)\n\n# Create a data frame\ndata <- data.frame(Year = years, US_Spending = us_spending, Suicides = suicides)\n\n# Load the ggplot2 library\nlibrary(ggplot2)\n```\n\n::: {.cell-output .cell-output-stderr}\n```\n#> Warning: Paket 'ggplot2' wurde unter R Version 4.3.2 erstellt\n```\n:::\n\n```{.r .cell-code}\n# scale the second argument\nmyScale <- 300\n\n# Create a plot with two y-axes\nplot <- ggplot(data, aes(x = Year)) +\n  geom_line(aes(y = Suicides, color = \"Suicides\"), linewidth = 1) +\n  geom_line(aes(y = US_Spending * myScale, color = \"US Spending\"), linewidth = 1) +\n  scale_y_continuous(\n    name = \"Suicides in US\",\n    sec.axis = sec_axis(~./myScale, name = \"US Spending in Billion $\")\n  ) +\n  labs(\n    x = \"Year\",\n    title = \"Year vs. Suicides and US Spending\"\n  ) +\n  scale_color_manual(values = c(\"Suicides\" = \"blue\", \"US Spending\" = \"red\")) +\n  theme_minimal()\n\n# Show the plot\nprint(plot)\n```\n\n::: {.cell-output-display}\n![](04_causality_files/figure-html/unnamed-chunk-1-1.png){width=672}\n:::\n\n```{.r .cell-code}\n# Calculate the correlation between Suicides and US Spending\ncor(suicides, us_spending)\n```\n\n::: {.cell-output .cell-output-stdout}\n```\n#> [1] 0.9920817\n```\n:::\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {
+      "include-in-header": [
+        "<link href=\"../../site_libs/pagedtable-1.1/css/pagedtable.css\" rel=\"stylesheet\" />\r\n<script src=\"../../site_libs/pagedtable-1.1/js/pagedtable.js\"></script>\r\n"
+      ]
+    },
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

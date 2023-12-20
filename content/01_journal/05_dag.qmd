@@ -1,7 +1,102 @@
 ---
-title: "Directed Acyclic Graphs"
+title: "DAG"
 ---
 
-::: callout-note
-You can delete everything in here and start fresh.
-:::
+# 1.
+```{r}
+
+# Load packages
+library(tidyverse)
+library(dagitty)
+library(ggdag)
+
+parkingDAG <- dagify(
+  X ~ Z,
+  Y ~ Z,
+  Y ~ X,
+  coords = list(x = c(Y = 3, Z = 2, X = 1),
+                y = c(Y = 0, Z = 1, X = 0)),
+  labels = list(X = "Parking Spot",
+                Y = "Sales", 
+                Z = "Location")
+)
+
+# Plot DAG
+ggdag(parkingDAG) +
+  theme_dag_gray() + # custom theme, can be left out
+  geom_dag_point(color = "lightgreen") +
+  geom_dag_text(color = "red") +
+  geom_dag_edges(edge_color = "blue") +
+  geom_dag_label_repel(aes(label = label))
+
+```
+
+# 2.
+In the data, you find three variables: satisfaction, follow_ups and subscription. Perform the following steps:\
+
+**regress satisfaction on follow_ups**\
+
+
+```{r}
+customer_sat <- readRDS("../../assignment_data/customer_sat.rds")
+lm_followUps <- lm(satisfaction ~ follow_ups, data = customer_sat)
+summary(lm_followUps, digits = 3)
+
+```
+
+
+**regress satisfaction on follow_ups and account for subscription**
+
+```{r}
+lm_all <- lm(satisfaction ~., data = customer_sat)
+summary(lm_all, digits = 3)
+
+```
+# 3.
+In the first table, the analysis shows that follow-ups have a very low p-value, indicating a significant impact on satisfaction. The negative estimate suggests that, on average, more follow-ups are associated with lower satisfaction scores.\
+
+However, upon considering the new regression data, it becomes evident that the subscription plan seems to exert a comparatively stronger impact on satisfaction than follow-ups. Specifically, having a premium or premium plus subscription is associated with higher satisfaction, as indicated by their positive estimates. The sign of the follow-ups estimate has also changed, now suggesting that more follow-ups are associated with higher satisfaction.\
+
+This shift in estimates implies that the new subscription variable acts as a confounding variable. To accurately understand the relationship between follow-ups and satisfaction, it becomes essential to condition on the subscription variable. In other words, to draw meaningful conclusions, it is crucial to compare data for the same type of subscription, ensuring that the impact of follow-ups on satisfaction is assessed within each subscription category.\
+
+# 4.
+```{r}
+df <- as_tibble(customer_sat)
+
+# Not conditioning on subscription
+not_cond <- ggplot(df, aes(x = follow_ups, y = satisfaction)) +
+  geom_point() +
+  stat_smooth(method = "lm", se = F)
+
+
+# Conditioning on subscription  
+cond <- ggplot(df, aes(x = follow_ups, y = satisfaction, color = subscription)) +
+  geom_point(alpha = .8) +
+  stat_smooth(method = "lm", se = F) +
+  theme(legend.position = "right")
+
+not_cond
+cond
+
+# DAG
+
+satisf_DAG <- dagify(
+  X ~ Z,
+  Y ~ Z,
+  Y ~ X,
+  coords = list(x = c(Y = 3, Z = 2, X = 1),
+                y = c(Y = 0, Z = 1, X = 0)),
+  labels = list(X = "Follow ups",
+                Y = "Satisfaction", 
+                Z = "Subscription")
+)
+# Plot DAG
+ggdag(satisf_DAG) +
+  theme_dag_gray() + # custom theme, can be left out
+  geom_dag_point(color = "lightgreen") +
+  geom_dag_text(color = "red") +
+  geom_dag_edges(edge_color = "blue") +
+  geom_dag_label_repel(aes(label = label))
+```
+
+

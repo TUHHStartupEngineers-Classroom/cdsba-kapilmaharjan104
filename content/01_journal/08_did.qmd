@@ -1,7 +1,57 @@
 ---
 title: "Difference-in-Differences"
 ---
+```{r}
+library(tidyverse)
+library(dagitty)
+library(ggdag)
+library(MatchIt)
+library(dplyr)
 
-::: callout-note
-You can delete everything in here and start fresh.
-:::
+hospdd <- readRDS("../../assignment_data/hospdd.rds")
+
+```
+# . Manually computing the mean satisfaction for treated and control hospitals before and after the treatment:
+
+```{r}
+
+# Manually compute differences
+# Step 1: Difference between treatment and control group BEFORE treatment
+# control group -> hospital ID 19 and above
+# treatment group -> hospital ID 18 or less
+# treatment begin : from month 4
+before_control_A <- hospdd %>%
+  filter(hospital > 18, month < 4) %>% 
+  pull(satis)
+before_treatment_A <- hospdd %>%
+  filter(hospital <= 18, month < 4) %>% 
+  pull(satis)
+
+diff_before_A <- mean(before_treatment_A) - mean(before_control_A)
+
+# Step 2: Difference between treatment and control group AFTER treatment
+after_control_A <- hospdd %>%
+  filter(hospital > 18, month >= 4) %>% 
+  pull(satis)
+after_treatment_A <- hospdd %>%
+  filter(hospital <= 18, month >= 4) %>% 
+  pull(satis)
+
+diff_after_A <- mean(after_treatment_A) - mean(after_control_A)
+
+# Step 3: Difference-in-differences. 
+diff_diff_A <- diff_after_A - diff_before_A
+cat("Estimate: ", diff_diff_A)
+```
+
+
+
+# . Using a linear regression to compute the estimate
+In this context, it is important to note that the variables "month" and "hospital" are categorical, and they are not continuous or ordinal variables. Therefore, it is advisable to apply the `as.factor()` function to ensure more accurate computations.
+```{r}
+
+summary(lm(satis ~ procedure + as.factor(month) + as.factor(hospital), data = hospdd))
+
+```
+
+

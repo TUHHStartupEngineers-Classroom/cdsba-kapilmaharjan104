@@ -1,7 +1,70 @@
 ---
 title: "Regression and Statistical Inference"
 ---
+# 1. 
+```{r}
+library(dplyr)
+# Read data
+car_prices <- readRDS("../../assignment_data/car_prices.rds")
 
-::: callout-note
-You can delete everything in here and start fresh.
-:::
+# check dimensions
+dimensions <- dim(car_prices)
+
+# Print the number of rows and columns
+cat(
+  "Number of Rows     : ", dimensions[1], "\n",
+  "Number of Columns  : ", dimensions[2], "\n"
+)
+
+```
+
+
+
+# 2.
+**Detailed Look at the data**
+```{r}
+# overview with head() function
+head(car_prices)
+
+# quick summary
+summary(car_prices,digits = 3)
+
+# data types:
+cat("Data Types:\n", sapply(car_prices, class), "\n")
+
+
+```
+
+**How do numbers differ from strings regarding their data type?** \
+Numeric data in R can take the form of either integers or floating-point numbers, and they are primarily employed for mathematical calculations and numerical analysis. Conversely, strings represent character data, comprising sequences of characters that can include letters, digits, and symbols. In some cases, datasets may include categorical variables, which can be converted into numerical values using methods such as factorization with functions like as.factor().
+
+
+# 3. 
+**Run a linear regression. You want to explain what factors are relevant for the pricing of a car.** \
+
+Using the lm() function,
+```{r}
+lm_all <- lm(price ~ .,data = car_prices)
+summary(lm_all, digits = 3)
+```
+Examining the summary, we can identify variables with low p-values, indicating their relevance to car pricing. Notably, factors such as peakrpm, stroke, enginesize, cylindernumber, and enginetype exhibit high relevance, as their p-values are substantially low, below 0.001. In contrast, features like carwidth and carbody show a comparatively lower impact on car prices, with p-values ranging between 0.001 and 0.01.The remaining regressors demonstrate a diminished influence on determining the car price.
+
+
+# 4. 
+Let's examine the regressor "peakrpm." According to the summary, it is of numeric data type, ranging between 4200 to 6600. \
+
+The linear regression model provides a positive but modest estimate for "peakrpm." This suggests that as the value of the regressor increases, the car price tends to increase, although not substantially. Specifically, for every one-unit increase in peakrpm, the car price increases by only 2.526 units. However, since the value of "peakrpm" varies in magnitudes of 1000, it can lead to changes in the car price on a similar scale.\
+
+What's noteworthy is that "peakrpm" holds statistical significance due to its low p-value. This indicates a strong relevance in determining the car's price.
+
+
+# 5.
+```{r}
+
+car_prices2 <- car_prices %>%
+  mutate(seat_heating = TRUE)
+
+model <- lm(price ~ ., data = car_prices2)
+summary(model)
+```
+Since all the values in the "seat_heating" variable are the same (TRUE), it implies there is no variability in that variable, and this lack of variability doesn't influence the dependent variable. Intuitively,  the estimate value should have been zero due to this perfect collinearity. However, the function returns NA for all the parameters because of the singularity.
