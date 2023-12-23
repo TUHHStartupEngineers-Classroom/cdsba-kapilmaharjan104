@@ -15,8 +15,9 @@ c0 <- 60
 # Density test
 rddd <- rddensity(df$days_since_last, c = c0)
 summary(rddd)
-
-
+```
+# . Half the bandwidth:
+```{r}
 # Specify bandwidth
 bw_half <- c0 + c(-5/2, 5/2)
 
@@ -45,6 +46,10 @@ sprintf("LATE: %.2f", late)
 lm_bw_half <- lm(purchase_after ~ days_since_last_centered + coupon, df_bw_half)
 summary(lm_bw_half)
 
+```
+
+# . double the bandwidth
+```{r}
 
 # doubled bw
 bw_doubled <- c0 + c(-10, 10)
@@ -73,6 +78,9 @@ sprintf("LATE: %.2f", late)
 lm_bw_doubled <- lm(purchase_after ~ days_since_last_centered + coupon, df_bw_doubled)
 summary(lm_bw_doubled)
 ```
+
+
+
 By taking half the bandwidth the number of data reduced to 181 and by doubling it, the number nearly doubled as well. The LATE and estimate value has decreased with the decreasing bandwidth and increased with the doubled bandwidth. The p-value of couponTRUE however has increased only for the smaller bandwidth.
 
 

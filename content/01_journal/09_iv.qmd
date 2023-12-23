@@ -84,5 +84,5 @@ summary(model_iv)
 
 The estimate has reduced by about 1 unit and the p-value has significantly reduced as well.
 
-##. Would you consider the naive estimate biased, and if yes, does it have an upward or downward bias?
+## . Would you consider the naive estimate biased, and if yes, does it have an upward or downward bias?
 The difference in estimates suggests that there might be unobserved confounding, and the naive estimate could be biased, potentially with an upward bias like in the given example regarding voluntary training program .
